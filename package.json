@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -15,5 +15,14 @@
   "bugs": {
     "url": "https://github.com/spriadka/appium-demo/issues"
   },
-  "homepage": "https://github.com/spriadka/appium-demo#readme"
+  "homepage": "https://github.com/spriadka/appium-demo#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-as-promised": "^6.0.0",
+    "colors": "^1.1.2",
+    "fs": "0.0.1-security",
+    "mocha": "^3.2.0",
+    "require": "^2.4.20",
+    "wd": "^1.0.0"
+  }
 }
