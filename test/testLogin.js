@@ -4,7 +4,7 @@
 require('colors');
 var Using = require('../helpers').Using;
 var chai = require('chai');
-chai.expect();
+var assert = chai.assert;
 var chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 chai.should();
@@ -24,7 +24,8 @@ describe('LoginTests', function () {
         platformName: 'Android',
         platformVersion: '6.0',
         deviceName: 'Nexus 5',
-        app: '/home/spriadka/raincatcher-mobile-temp/spriadka-RAINCATCH-321-WFM-Demo-Mobile-App/platforms/android/ant-build/MainActivity-debug.apk'
+        app: '/home/spriadka/raincatcher-mobile-temp/spriadka-RAINCATCH-321-WFM-Demo-Mobile-App/platforms/android/ant-build/MainActivity-debug.apk',
+        udid: '00ee4bbc5ac3194a'
     };
     var browser;
     before(function (done) {
@@ -38,76 +39,30 @@ describe('LoginTests', function () {
         browser.on('http', function (meth, path, data) {
             console.log(' > ' + meth.magenta, path, (data || '').grey);
         });
-        return browser
-            .init(appiumConfig)
-            .nodeify(done);
+        return done();
     });
 
-    // tagging chai assertion errors for retry
-    // var assertionError = function (err) {
-    //     // throw error and tag as retriable to poll again
-    //     // console.log(">>>>>>>> IN ERROR", err);
-    //     err.retriable = err instanceof chai.AssertionError;
-    //     // err.retriable = true;
-    //     console.log(">>>>>>>> IN ERROR", err.retriable);
-    //     throw err;
-    // };
-
-// simple asserter, just making sure that the element (or browser)
-// text is non-empty and returning the text.
-// It will be called until the promise is resolved with a defined value.
-    var customTextNonEmpty = new Asserter(
-        function callMeAgain(target) { // browser or el
-            return target
-                .hasElement(Using.tagName, 'md-progress-circular').then(function (res) {
-                    var self = this;
-                    self.res = res;
-                    console.log(">>>>>>>> IN THEN", res);
-                    if (self.res) {
-                        console.log('>>>>>', self.res);
-                        err = new chai.AssertionError();
+    var elementExistsAsserter = function(target,using,value) {
+        return new Asserter(
+            function (target) { // browser or el
+                return target
+                    .hasElement(using, value).then(function (res) {
+                            assert.equal(false, res);
+                            return res;
+                        }
+                    )
+                    .catch(function (err) {
                         err.retriable = true;
                         throw err;
-                    } else {
-                        console.log('>>>>>', self.res);
-                        return self.res;
-                    }
-                });
-        }
-    );
-
-
-    /*
-     function newAssertedPromise(browser, using, value) {
-     setTimeout(function (using, value) {
-     browser.hasElement(using, value, function (err, result) {
-     if (err) {
-     throw new Error(err);
-     }
-     if (!result) {
-     return browser;
-     }
-     else {
-     newAssertedPromise(browser, using, value)
-     }
-     })
-     }, 500, using, value);
-     // console.log(">>>>>>>>>>>>>  ", promised);
-     }
-
-     var doesNotExistAsserter = function(target,using,value){
-     return new Asserter(function(browser){
-     return new Promise(function () {
-     newAssertedPromise(browser, using, value);
-     });
-     });
-     };
-     */
+                    })
+            });
+    }
 
     beforeEach(function (done) {
         return browser
+            .init(appiumConfig)
             .context("WEBVIEW_com.redhat.demo.wfm")
-            .waitFor(customTextNonEmpty, 5000, 500)
+            .waitFor(elementExistsAsserter(browser,Using.tagName,'md-progress-circular'), 5000, 500)
             .nodeify(done);
     });
     afterEach(function (done) {
@@ -115,12 +70,27 @@ describe('LoginTests', function () {
             .quit()
             .nodeify(done);
     });
-    it('Should connect', function (done) {
+    it('Should log in correct user', function (done) {
+        return browser
+            .url()
+            .element(Using.id, 'username')
+            .type('trever')
+            .element(Using.id, 'password')
+            .type('demo')
+            .element(Using.cssSelector,'button.md-raised.md-primary.md-hue-2.md-button.md-ink-ripple')
+            .tap()
+            .nodeify(done);
+    });
+    it('Should load workflows',function(done){
         return browser
             .element(Using.id, 'username')
             .type('trever')
             .element(Using.id, 'password')
             .type('demo')
+            .element(Using.cssSelector,'button.md-raised.md-primary.md-hue-2.md-button.md-ink-ripple')
+            .tap()
+            .waitForElement(Using.className,'md-toolbar-tools',asserters.isDisplayed)
+            .sleep(5000)
             .nodeify(done);
-    });
+    })
 });

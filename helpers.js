@@ -3,8 +3,8 @@
  */
 var Using  = {
     id: 'id',
-    className: 'classname',
-    cssSelector: 'cssselector',
+    className: 'class name',
+    cssSelector: 'css selector',
     name: 'name',
     linkText: 'link text',
     partialLinkText: 'partial link text',
