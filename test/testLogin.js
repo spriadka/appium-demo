@@ -42,7 +42,7 @@ describe('LoginTests', function () {
         return done();
     });
 
-    var elementExistsAsserter = function(target,using,value) {
+    var elementDoesntExistsAsserter = function(target,using,value) {
         return new Asserter(
             function (target) { // browser or el
                 return target
@@ -56,13 +56,29 @@ describe('LoginTests', function () {
                         throw err;
                     })
             });
-    }
+    };
+    var elementExistsAsserter = function(target,using,value) {
+        return new Asserter(
+            function (target) { // browser or el
+                return target
+                    .hasElement(using, value).then(function (res) {
+                            assert.equal(true, res);
+                            return res;
+                        }
+                    )
+                    .catch(function (err) {
+                        err.retriable = true;
+                        throw err;
+                    })
+            });
+    };
 
     beforeEach(function (done) {
         return browser
             .init(appiumConfig)
+            .setOrientation('PORTRAIT')
             .context("WEBVIEW_com.redhat.demo.wfm")
-            .waitFor(elementExistsAsserter(browser,Using.tagName,'md-progress-circular'), 5000, 500)
+            .waitFor(elementDoesntExistsAsserter(browser,Using.tagName,'md-progress-circular'), 10000, 500)
             .nodeify(done);
     });
     afterEach(function (done) {
@@ -89,8 +105,16 @@ describe('LoginTests', function () {
             .type('demo')
             .element(Using.cssSelector,'button.md-raised.md-primary.md-hue-2.md-button.md-ink-ripple')
             .tap()
-            .waitForElement(Using.className,'md-toolbar-tools',asserters.isDisplayed)
+            .waitFor(elementExistsAsserter(browser,Using.xpath,'//span[text()="Workorders"]'),5000,500)
+            .sleep(2000)
+            .element(Using.cssSelector,'button.md-icon-button.md-button.md-ink-ripple.hide-gt-sm')
+            .tap()
             .sleep(5000)
+            .waitFor(elementExistsAsserter(browser,Using.xpath,'//md-sidenav'),5000,500)
+            .element(Using.cssSelector,'button.md-no-style.md-button.md-ink-ripple')
+            .flick(0,0,400)
+            .noop()
+            .sleep(2000)
             .nodeify(done);
     })
 });
